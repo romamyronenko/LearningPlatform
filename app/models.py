@@ -113,3 +113,4 @@ class Answers(db.Model):
     question_id = db.Column(db.Integer, db.ForeignKey(Question.id))
     answer = db.Column(db.Text)
     student_id = db.Column(db.Integer, db.ForeignKey(User.id))
+

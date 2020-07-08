@@ -1,7 +1,10 @@
+import os
 from flask import Flask
 from flask_restful import Api
 from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate
 from sqlalchemy import MetaData
+import config
 
 naming_convention = {
     "ix": 'ix_%(column_0_label)s',
@@ -11,10 +14,14 @@ naming_convention = {
     "pk": "pk_%(table_name)s"
 }
 
+configs = {
+    'dev': config.DevConfig
+}
+
 app = Flask(__name__)
-api = Api(app)
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://debian-sys-maint:po5lmyQ0fBCgcxl0@localhost/lplatform?charset=utf8mb4'
+app.config.from_object(configs.get(os.getenv('APP_CONFIG'), config.DevConfig))
 db = SQLAlchemy(app, metadata=MetaData(naming_convention=naming_convention))
+migrate = Migrate(app, db)
+api = Api(app)
 
 from . import controllers
