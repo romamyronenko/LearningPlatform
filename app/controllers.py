@@ -8,6 +8,15 @@ parser.add_argument('name')
 parser.add_argument('password')
 parser.add_argument('role')
 parser.add_argument('teacher_id')
+parser.add_argument('status')
+parser.add_argument('content')
+
+
+def validate(args, names):
+    for i in names:
+        if not args[i]:
+            return i + ' is empty', 400
+    return '', [args[i] for i in names]
 
 
 class UserApi(Resource):
@@ -43,18 +52,10 @@ class UserListApi(Resource):
     def post(self):
         """Add new User"""
         args = parser.parse_args()
-        if not args['username']:
-            return 'username is empty', 400
-        if not args['name']:
-            return 'name is empty', 400
-        if not args['password']:
-            return 'password is empty', 400
-        if not args['role']:
-            return 'role is empty', 400
-        db.session.add(models.User(args['username'],
-                                   args['name'],
-                                   args['password'],
-                                   args['role']))
+        val = validate(args, ('username', 'name', 'password', 'role'))
+        if val[0]:
+            return val
+        db.session.add(models.User(*val[1]))
         db.session.commit()
 
         return args['username'], 201
@@ -92,13 +93,10 @@ class GroupApi(Resource):
 class GroupListApi(Resource):
     def post(self):
         args = parser.parse_args()
-        print(args)
-        if not args['name']:
-            return 'name is empty', 400
-        if not args['teacher_id']:
-            return 'teacher_id is empty', 400
-        db.session.add(models.Group(args['name'],
-                                    args['teacher_id']))
+        val = validate(args, ('name', 'teacher_id'))
+        if val[0]:
+            return val
+        db.session.add(models.Group(*val[1]))
         db.session.commit()
         return args['name'], 201
 
@@ -108,7 +106,61 @@ class GroupListApi(Resource):
                            'teacher_id': group.teacher_id} for group in groups}
 
 
+class PublicationApi(Resource):
+    def get(self, id):
+        publication = models.Publication.query.filter_by(id=id).first()
+        return {publication.id: {'teacher_id': publication.teacher_id,
+                                 'name': publication.name,
+                                 'status': publication.status,
+                                 'content': publication.content,
+                                 'date': str(publication.date)}}
+
+    def put(self, id):
+        publication = models.Publication.query.filter_by(id=id).first()
+        args = parser.parse_args()
+        if args['name'] is not None:
+            publication.name = args['name']
+        if args['status'] is not None:
+            publication.status = args['status']
+        if args['content'] is not None:
+            publication.content = args['content']
+
+        return {publication.id: {'teacher_id': publication.teacher_id,
+                                 'name': publication.name,
+                                 'status': publication.status,
+                                 'content': publication.content,
+                                 'date': str(publication.date)}}
+
+    def delete(self, id):
+        publication = models.Publication.query.filter_by(id=id).first()
+        db.session.delete(publication)
+        db.session.commit()
+        return '', 204
+
+
+class PublicationListApi(Resource):
+    def post(self):
+        args = parser.parse_args()
+
+        val = validate(args, ('teacher_id', 'name', 'status', 'content'))
+        if val[0]:
+            return val
+        db.session.add(models.Publication(*val[1]))
+        db.session.commit()
+        return args['name'], 201
+
+    def get(self):
+        publications = models.Publication.query.all()
+        return {publication.id: {'teacher_id': publication.teacher_id,
+                                 'name': publication.name,
+                                 'status': publication.status,
+                                 'content': publication.content,
+                                 'date': str(publication.date)} for publication in publications}
+
+
 api.add_resource(UserListApi, '/rest/users')
 api.add_resource(UserApi, '/rest/users/<id>')
 api.add_resource(GroupListApi, '/rest/groups')
 api.add_resource(GroupApi, '/rest/groups/<id>')
+api.add_resource(PublicationListApi, '/rest/publications')
+api.add_resource(PublicationApi, '/rest/publications/<id>')

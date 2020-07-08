@@ -1,4 +1,5 @@
 from werkzeug.security import generate_password_hash
+import time
 from app import db
 
 
@@ -34,6 +35,13 @@ class Publication(db.Model):
     status = db.Column(db.VARCHAR(30), db.ForeignKey(PublicationStatus.name))
     content = db.Column(db.Text)
     date = db.Column(db.Date)
+
+    def __init__(self, teacher_id, name, status, content):
+        self.teacher_id = teacher_id
+        self.name = name
+        self.status = status
+        self.content = content
+        self.date = time.strftime('%Y-%m-%d')
 
 
 class Group(db.Model):
@@ -113,4 +121,3 @@ class Answers(db.Model):
     question_id = db.Column(db.Integer, db.ForeignKey(Question.id))
     answer = db.Column(db.Text)
     student_id = db.Column(db.Integer, db.ForeignKey(User.id))
-
