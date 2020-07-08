@@ -41,6 +41,13 @@ class Group(db.Model):
     name = db.Column(db.VARCHAR(30))
     teacher_id = db.Column(db.Integer, db.ForeignKey(User.id))
 
+    def __init__(self, name, teacher_id):
+        self.name = name
+        self.teacher_id = teacher_id
+
+    def __repr__(self):
+        return f'Group({self.id}, {self.name}, {self.teacher_id})'
+
 
 class GroupStudent(db.Model):
     id = db.Column(db.Integer, primary_key=True)
