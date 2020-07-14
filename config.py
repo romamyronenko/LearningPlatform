@@ -12,3 +12,9 @@ class DevConfig(Config):
     DEBUG = True
     ENV = 'development'
     SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://debian-sys-maint:' + os.getenv('DATABASE_PASSWORD') + '@localhost/lplatform?charset=utf8mb4'
+
+
+class TestConfig(Config):
+    DEBUG = True
+    ENV = 'test'
+    SQLALCHEMY_DATABASE_URI = 'sqlite:///:memory:'

@@ -15,11 +15,12 @@ naming_convention = {
 }
 
 configs = {
-    'dev': config.DevConfig
+    'dev': config.DevConfig,
+    'test': config.TestConfig
 }
 
 app = Flask(__name__)
-app.config.from_object(configs.get(os.getenv('APP_CONFIG'), config.DevConfig))
+app.config.from_object(configs.get(os.getenv('APP_CONFIG'), config.TestConfig))
 db = SQLAlchemy(app, metadata=MetaData(naming_convention=naming_convention))
 migrate = Migrate(app, db)
 api = Api(app)
