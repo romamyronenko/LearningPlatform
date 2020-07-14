@@ -16,6 +16,9 @@ def validate(args, names):
     for i in names:
         if not args[i]:
             return i + ' is empty', 400
+        if i == 'teacher_id':
+            if models.User.query.filter_by(id=args[i]).first().role != 'Teacher':
+                return 'user is not a teacher', 406
     return '', [args[i] for i in names]
 
 
@@ -37,7 +40,7 @@ def post_wrapper(f):
 
         db.session.add(table(*val[1]))
         db.session.commit()
-        return p_args['name'], 201
+        return {i: j for i, j in zip(names, val[1])}, 201
     return wrapper
 
 
@@ -52,7 +55,7 @@ def get_wrapper(many=True):
             if not many:
                 table, condition = f(*args, **kwargs)
                 value = table.query.filter_by(**condition).first()
-                # value.__dict__[name] - return value of column `name`
+                # value.__dict__['name'] - return value of column `name`
                 return {i: value.__dict__[i] for i in table.__table__.columns.keys()}
 
             table = f(*args, **kwargs)
