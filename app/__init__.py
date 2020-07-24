@@ -26,3 +26,4 @@ migrate = Migrate(app, db)
 api = Api(app)
 
 from . import controllers
+from . import auth

@@ -1,6 +1,7 @@
 from flask_restful import Resource, reqparse
 from . import db, api
 from . import models
+from . import auth
 
 parser = reqparse.RequestParser()
 parser.add_argument('username')
@@ -61,7 +62,7 @@ def get_wrapper(many=True):
             table = f(*args, **kwargs)
             values = table.query.all()
             # table.__table__.columns.keys() - return list of column names
-            return [{i: value.__dict__[i] for i in table.__table__.columns.keys()} for value in values]
+            return [{i: str(value.__dict__[i]) for i in table.__table__.columns.keys()} for value in values]
         return wrapper
     return func
 
@@ -205,6 +206,7 @@ class PublicationApi(Resource):
 
 
 class PublicationListApi(Resource):
+    @auth.token_required
     @post_wrapper
     def post(self):
         return ('teacher_id', 'name', 'status', 'content'), models.Publication
