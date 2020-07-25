@@ -20,7 +20,7 @@ def login():
 
 
 def token_required(f):
-    def wrapper(self, *args):
+    def wrapper(self, *args, **kwargs):
         token = request.headers.get('X-Api-Key', '')
         if not token:
             return '', 401, {'WWW-Authenticate': 'Basic realm="Authentication required"'}
@@ -32,5 +32,5 @@ def token_required(f):
         if not user:
             return '', 401, {'WWW-Authenticate': 'Basic realm="Authentication required"'}
 
-        return f(self, *args)
+        return f(self, *args, **kwargs)
     return wrapper

@@ -64,4 +64,3 @@ def test_add_user(get_db):
                 assert r[i][j] == users[i][j]
             else:
                 assert check_password_hash(r[i][j], users[i][j])
-

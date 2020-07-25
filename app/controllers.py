@@ -1,3 +1,4 @@
+from werkzeug.security import generate_password_hash
 from flask_restful import Resource, reqparse
 from . import db, api
 from . import models
@@ -19,8 +20,19 @@ class CustomResource(Resource):
         # value.__dict__['name'] - return value of column `name`
         return {i: value.__dict__[i] for i in self.model.__table__.columns.keys()}
 
-    def put(self):
-        pass
+    def put(self, **kwargs):
+        if self.fields_allowed_change is None:
+            return 'you can\'t make changes to this table',
+        value = self.model.query.filter_by(**kwargs)
+        args = parser.parse_args()
+        for i in self.fields_allowed_change:
+            if args[i] is not None:
+                if i == 'password':
+                    value.update({i: generate_password_hash(args[i])})
+                    continue
+                value.update({i: args[i]})
+        db.session.commit()
+        return {i: value.first().__dict__[i] for i in self.model.__table__.columns.keys()}, 201
 
     def delete(self, **kwargs):
         value = self.model.query.filter_by(**kwargs).first()
@@ -50,6 +62,7 @@ class CustomListResource(Resource):
 
 class RoleApi(CustomResource):
     model = models.Role
+    fields_allowed_change = None
 
 
 class RoleListApi(CustomListResource):
@@ -73,6 +86,7 @@ class RoleListApi(CustomListResource):
 
 class UserApi(CustomResource):
     model = models.User
+    fields_allowed_change = ('username', 'name', 'password')
 
 
 class UserListApi(CustomListResource):
@@ -112,6 +126,7 @@ class UserListApi(CustomListResource):
 
 class PublicationStatusApi(CustomResource):
     model = models.PublicationStatus
+    fields_allowed_change = None
 
 
 class PublicationStatusListApi(CustomListResource):
@@ -121,6 +136,7 @@ class PublicationStatusListApi(CustomListResource):
 
 class GroupApi(CustomResource):
     model = models.Group
+    fields_allowed_change = ('name', )
 
 
 class GroupListApi(CustomListResource):
@@ -130,15 +146,39 @@ class GroupListApi(CustomListResource):
 
 class PublicationApi(CustomResource):
     model = models.Publication
+    fields_allowed_change = ('name', 'status', 'content')
 
 
 class PublicationListApi(CustomListResource):
     model = models.Publication
     fields = ('teacher_id', 'name', 'status', 'content')
 
+    def validate(self, values):
+        for i in self.fields:
+            if i == 'teacher_id':
+                if models.User.query.filter_by(id=values[i]).first().role != 'Teacher':
+                    return 'user is not a teacher', 406
+            elif i == 'name':
+                if not values[i]:
+                    return 'name is empty', 411
+                if len(values[i]) < 2:
+                    return 'name too short', 411
+                if not values[i].isalpha():
+                    return 'name is not correct', 403
+            elif i == 'status':
+                statuses = [i.name for i in models.PublicationStatus.query.all()]
+                if values[i] not in statuses:
+                    return 'status is not exists', 403
+                if not values[i]:
+                    return 'status is empty', 411
+            elif i == 'content':
+                pass
+        return '', [values[i] for i in self.fields]
+
 
 class GroupStudentApi(CustomResource):
     model = models.GroupStudent
+    fields_allowed_change = None
 
 
 class GroupStudentListApi(CustomListResource):
@@ -148,6 +188,7 @@ class GroupStudentListApi(CustomListResource):
 
 class PublicationPermissionStudentApi(CustomResource):
     model = models.PublicationPermissionStudent
+    fields_allowed_change = None
 
 
 class PublicationPermissionStudentListApi(CustomListResource):
@@ -157,6 +198,7 @@ class PublicationPermissionStudentListApi(CustomListResource):
 
 class PublicationPermissionGroupApi(CustomResource):
     model = models.PublicationPermissionGroup
+    fields_allowed_change = None
 
 
 class PublicationPermissionGroupListApi(CustomListResource):
@@ -166,6 +208,7 @@ class PublicationPermissionGroupListApi(CustomListResource):
 
 class TaskApi(CustomResource):
     model = models.Task
+    fields_allowed_change = None
 
 
 class TaskListApi(CustomListResource):
@@ -175,6 +218,7 @@ class TaskListApi(CustomListResource):
 
 class RatingFieldsApi(CustomResource):
     model = models.RatingFields
+    fields_allowed_change = ('field_name', 'required')
 
 
 class RatingFieldsListApi(CustomListResource):
@@ -184,6 +228,7 @@ class RatingFieldsListApi(CustomListResource):
 
 class RatingListApi(CustomResource):
     model = models.RatingList
+    fields_allowed_change = ('mark', )
 
 
 class RatingListListApi(CustomListResource):
@@ -193,6 +238,7 @@ class RatingListListApi(CustomListResource):
 
 class QuestionTypeApi(CustomResource):
     model = models.QuestionType
+    fields_allowed_change = None
 
 
 class QuestionTypeListApi(CustomListResource):
@@ -202,6 +248,7 @@ class QuestionTypeListApi(CustomListResource):
 
 class QuestionApi(CustomResource):
     model = models.Question
+    fields_allowed_change = ('number', 'question', 'correct_answer', 'max_mark')
 
 
 class QuestionListApi(CustomListResource):
@@ -211,6 +258,7 @@ class QuestionListApi(CustomListResource):
 
 class TestsApi(CustomResource):
     model = models.Tests
+    fields_allowed_change = ('answer',)
 
 
 class TestsListApi(CustomListResource):
@@ -220,6 +268,7 @@ class TestsListApi(CustomListResource):
 
 class AnswersApi(CustomResource):
     model = models.Answers
+    fields_allowed_change = None
 
 
 class AnswersListApi(CustomListResource):
