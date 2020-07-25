@@ -11,18 +11,6 @@ parser.add_argument('role')
 parser.add_argument('teacher_id')
 parser.add_argument('status')
 parser.add_argument('content')
-parser.add_argument('group_id')
-parser.add_argument('student_id')
-parser.add_argument('publication_id')
-parser.add_argument('task_id')
-parser.add_argument('field_name')
-parser.add_argument('required')
-parser.add_argument('mark')
-parser.add_argument('number')
-parser.add_argument('question')
-parser.add_argument('correct_answer')
-parser.add_argument('type')
-parser.add_argument('max_mark')
 
 
 def validate(args, names):
@@ -49,13 +37,13 @@ class CustomResource(Resource):
     def delete(self, **kwargs):
         db.session.delete(self.model.query.filter_by(**kwargs).first())
         db.session.commit()
-        return 'Successfully deleted', 204
+        return '', 204
 
 
 class CustomListResource(Resource):
     def post(self):
         p_args = parser.parse_args()
-        val = self.validate(p_args)
+        val = validate(p_args, self.fields)
         if val[0]:
             return val
 
@@ -76,20 +64,6 @@ class RoleApi(CustomResource):
 class RoleListApi(CustomListResource):
     model = models.Role
     fields = ('name',)
-
-    def validate(self, values):
-        roles = [i.name for i in self.model.query.all()]
-        for i in self.fields:
-            if i == 'name':
-                if not values[i]:
-                    return 'name is empty', 411
-                if values[i] in roles:
-                    return 'role is exists', 411
-                if len(values[i]) < 2:
-                    return 'name too short', 411
-                if len(values[i]) > 30:
-                    return 'name too long', 411
-        return '', [values[i] for i in self.fields]
 
 
 class UserApi(CustomResource):
