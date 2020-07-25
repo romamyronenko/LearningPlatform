@@ -4,23 +4,11 @@ from . import models
 from . import auth
 
 parser = reqparse.RequestParser()
-parser.add_argument('username')
-parser.add_argument('name')
-parser.add_argument('password')
-parser.add_argument('role')
-parser.add_argument('teacher_id')
-parser.add_argument('status')
-parser.add_argument('content')
-
-
-def validate(args, names):
-    for i in names:
-        if not args[i]:
-            return i + ' is empty', 400
-        if i == 'teacher_id':
-            if models.User.query.filter_by(id=args[i]).first().role != 'Teacher':
-                return 'user is not a teacher', 406
-    return '', [args[i] for i in names]
+arguments = ('username', 'name', 'password', 'role', 'teacher_id', 'status', 'content',
+             'group_id', 'student_id', 'publication_id', 'task_id', 'field_name', 'required',
+             'mark', 'number', 'question', 'correct_answer', 'type', 'max_mark')
+for argument in arguments:
+    parser.add_argument(argument)
 
 
 class CustomResource(Resource):
@@ -35,15 +23,18 @@ class CustomResource(Resource):
         pass
 
     def delete(self, **kwargs):
-        db.session.delete(self.model.query.filter_by(**kwargs).first())
+        value = self.model.query.filter_by(**kwargs).first()
+        if not value:
+            return 'value is not exists', 403
+        db.session.delete(value)
         db.session.commit()
-        return '', 204
+        return 'Successfully deleted', 204
 
 
 class CustomListResource(Resource):
     def post(self):
         p_args = parser.parse_args()
-        val = validate(p_args, self.fields)
+        val = self.validate(p_args)
         if val[0]:
             return val
 
@@ -65,6 +56,20 @@ class RoleListApi(CustomListResource):
     model = models.Role
     fields = ('name',)
 
+    def validate(self, values):
+        roles = [i.name for i in self.model.query.all()]
+        for i in self.fields:
+            if i == 'name':
+                if not values[i]:
+                    return 'name is empty', 411
+                if values[i] in roles:
+                    return 'role is exists', 403
+                if len(values[i]) < 2:
+                    return 'name too short', 411
+                if len(values[i]) > 30:
+                    return 'name too long', 411
+        return '', [values[i] for i in self.fields]
+
 
 class UserApi(CustomResource):
     model = models.User
@@ -73,6 +78,36 @@ class UserApi(CustomResource):
 class UserListApi(CustomListResource):
     model = models.User
     fields = ('username', 'name', 'password', 'role')
+
+    def validate(self, values):
+        users = [i.username for i in self.model.query.all()]
+        for i in self.fields:
+            if i == 'username':
+                if not values[i]:
+                    return 'name is empty', 411
+                if values[i] in users:
+                    return 'username  is taken', 403
+                if len(values[i]) < 2:
+                    return 'name too short', 411
+                if len(values[i]) > 30:
+                    return 'name too long', 411
+            elif i == 'name':
+                if len(values[i]) < 2:
+                    return 'name too short', 411
+                if len(values[i]) > 255:
+                    return 'name too long', 411
+                if not values[i].isalpha():
+                    return 'name is not correct', 403
+            elif i == 'password':
+                if len(values[i]) < 6:
+                    return 'password too short', 411
+            elif i == 'role':
+                roles = [i.name for i in models.Role.query.all()]
+                if values[i] not in roles:
+                    return 'role is not exists', 403
+                if not values[i]:
+                    return 'role is empty', 411
+        return '', [values[i] for i in self.fields]
 
 
 class PublicationStatusApi(CustomResource):

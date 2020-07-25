@@ -1,0 +1,9 @@
+POST:
+	role:
+		curl -d '{"name": "Admin"}' -H 'Content-Type: application/json' 127.0.0.1:5000/rest/roles
+	user:
+		curl -d '{"username": "Roman123", "name": "Roman", "password": "1", "role": "Student"}' -H 'Content-Type: application/json' 127.0.0.1:5000/rest/users
+
+DELETE:
+	curl -X DELETE http://localhost:5000/rest/publications/1
+
