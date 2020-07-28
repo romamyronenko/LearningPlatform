@@ -8,7 +8,6 @@ roles = [
     {'name': 'Teacher'},
     {'name': 'Admin'}
 ]
-
 users = [
     {
         'username': 'roma0221',
@@ -25,6 +24,7 @@ users = [
 ]
 
 
+
 @pytest.fixture
 def get_db():
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///:memory:'
@@ -39,7 +39,7 @@ def test_empty_db(get_db):
 
 
 def test_add_role(get_db):
-    r1 = app.test_client().post('/rest/roles', data=roles[0])
+    r1 = app.test_client().post('/rest/roles', json=roles[0])
     r2 = app.test_client().get('/rest/roles')
     r3 = app.test_client().get('/rest/roles/Student')
     assert r1.json == roles[0]
@@ -53,10 +53,10 @@ def test_remove_role(get_db):
 
 def test_add_user(get_db):
     for i in roles:
-        app.test_client().post('/rest/roles', data=i)
+        app.test_client().post('/rest/roles', json=i)
 
     for i in users:
-        app.test_client().post('/rest/users', data=i)
+        app.test_client().post('/rest/users', json=i)
     r = app.test_client().get('/rest/users').json
     for i in range(len(users)):
         for j in users[i]:

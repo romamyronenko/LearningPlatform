@@ -7,3 +7,5 @@ POST:
 DELETE:
 	curl -X DELETE http://localhost:5000/rest/publications/1
 
+PUT:
+	curl -X PUT -H "Content-Type: application/json" -d '{"name":"Teacher1"}' "127.0.0.1:5000/rest/roles/Teacher"
