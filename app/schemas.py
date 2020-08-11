@@ -1,5 +1,8 @@
 from marshmallow_sqlalchemy import SQLAlchemyAutoSchema
+from marshmallow.exceptions import ValidationError
+from flask import request
 from . import models
+from marshmallow import validates
 
 
 class RoleSchema(SQLAlchemyAutoSchema):
@@ -14,20 +17,39 @@ class UserSchema(SQLAlchemyAutoSchema):
         load_instance = True
         include_fk = True
 
+    @validates('role')
+    def is_teacher(self, value):
+        if value == 'Admin':
+            raise ValidationError('permissions denied')
+
 
 class PublicationStatusSchema(SQLAlchemyAutoSchema):
     class Meta:
         model = models.PublicationStatus
+        load_instance = True
+        include_fk = True
 
 
 class PublicationSchema(SQLAlchemyAutoSchema):
     class Meta:
         model = models.Publication
+        load_instance = True
+        include_fk = True
+
+    @validates('user_id')
+    def is_teacher(self, value):
+        if models.User.query.filter_by(id=value).first().role != 'Teacher':
+            raise ValidationError('user is not a teacher')
 
 
 class GroupSchema(SQLAlchemyAutoSchema):
     class Meta:
         model = models.Group
+
+    @validates('user_id')
+    def is_teacher(self, value):
+        if models.User.query.filter_by(id=value).first().role != 'Teacher':
+            raise ValidationError('user is not a teacher')
 
 
 class GroupStudentSchema(SQLAlchemyAutoSchema):

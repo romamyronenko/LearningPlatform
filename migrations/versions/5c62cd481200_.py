@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: 3cd08a8c3f3a
+Revision ID: 5c62cd481200
 Revises: 
-Create Date: 2020-07-15 19:49:27.311924
+Create Date: 2020-07-30 16:29:09.340880
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '3cd08a8c3f3a'
+revision = '5c62cd481200'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -43,34 +43,34 @@ def upgrade():
     op.create_table('group',
     sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
     sa.Column('name', sa.VARCHAR(length=30), nullable=True),
-    sa.Column('teacher_id', sa.Integer(), nullable=True),
-    sa.ForeignKeyConstraint(['teacher_id'], ['user.id'], name=op.f('fk_group_teacher_id_user')),
+    sa.Column('user_id', sa.Integer(), nullable=True),
+    sa.ForeignKeyConstraint(['user_id'], ['user.id'], name=op.f('fk_group_user_id_user')),
     sa.PrimaryKeyConstraint('id', name=op.f('pk_group'))
     )
     op.create_table('publication',
     sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
-    sa.Column('teacher_id', sa.Integer(), nullable=True),
+    sa.Column('user_id', sa.Integer(), nullable=True),
     sa.Column('name', sa.Text(), nullable=True),
     sa.Column('status', sa.VARCHAR(length=30), nullable=True),
     sa.Column('content', sa.Text(), nullable=True),
     sa.Column('date', sa.Date(), nullable=True),
     sa.ForeignKeyConstraint(['status'], ['publication_status.name'], name=op.f('fk_publication_status_publication_status')),
-    sa.ForeignKeyConstraint(['teacher_id'], ['user.id'], name=op.f('fk_publication_teacher_id_user')),
+    sa.ForeignKeyConstraint(['user_id'], ['user.id'], name=op.f('fk_publication_user_id_user')),
     sa.PrimaryKeyConstraint('id', name=op.f('pk_publication'))
     )
     op.create_table('task',
     sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
-    sa.Column('teacher_id', sa.Integer(), nullable=True),
+    sa.Column('user_id', sa.Integer(), nullable=True),
     sa.Column('max_mark', sa.Integer(), nullable=True),
-    sa.ForeignKeyConstraint(['teacher_id'], ['user.id'], name=op.f('fk_task_teacher_id_user')),
+    sa.ForeignKeyConstraint(['user_id'], ['user.id'], name=op.f('fk_task_user_id_user')),
     sa.PrimaryKeyConstraint('id', name=op.f('pk_task'))
     )
     op.create_table('group_student',
     sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('student_id', sa.Integer(), nullable=True),
+    sa.Column('user_id', sa.Integer(), nullable=True),
     sa.Column('group_id', sa.Integer(), nullable=True),
     sa.ForeignKeyConstraint(['group_id'], ['group.id'], name=op.f('fk_group_student_group_id_group')),
-    sa.ForeignKeyConstraint(['student_id'], ['user.id'], name=op.f('fk_group_student_student_id_user')),
+    sa.ForeignKeyConstraint(['user_id'], ['user.id'], name=op.f('fk_group_student_user_id_user')),
     sa.PrimaryKeyConstraint('id', name=op.f('pk_group_student'))
     )
     op.create_table('publication_permission_group',
@@ -84,9 +84,9 @@ def upgrade():
     op.create_table('publication_permission_student',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('publication_id', sa.Integer(), nullable=True),
-    sa.Column('student_id', sa.Integer(), nullable=True),
+    sa.Column('user_id', sa.Integer(), nullable=True),
     sa.ForeignKeyConstraint(['publication_id'], ['publication.id'], name=op.f('fk_publication_permission_student_publication_id_publication')),
-    sa.ForeignKeyConstraint(['student_id'], ['user.id'], name=op.f('fk_publication_permission_student_student_id_user')),
+    sa.ForeignKeyConstraint(['user_id'], ['user.id'], name=op.f('fk_publication_permission_student_user_id_user')),
     sa.PrimaryKeyConstraint('id', name=op.f('pk_publication_permission_student'))
     )
     op.create_table('question',
@@ -115,18 +115,18 @@ def upgrade():
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('question_id', sa.Integer(), nullable=True),
     sa.Column('answer', sa.Text(), nullable=True),
-    sa.Column('student_id', sa.Integer(), nullable=True),
+    sa.Column('user_id', sa.Integer(), nullable=True),
     sa.ForeignKeyConstraint(['question_id'], ['question.id'], name=op.f('fk_answers_question_id_question')),
-    sa.ForeignKeyConstraint(['student_id'], ['user.id'], name=op.f('fk_answers_student_id_user')),
+    sa.ForeignKeyConstraint(['user_id'], ['user.id'], name=op.f('fk_answers_user_id_user')),
     sa.PrimaryKeyConstraint('id', name=op.f('pk_answers'))
     )
     op.create_table('rating_list',
     sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('student_id', sa.Integer(), nullable=True),
+    sa.Column('user_id', sa.Integer(), nullable=True),
     sa.Column('field_id', sa.Integer(), nullable=True),
     sa.Column('mark', sa.Integer(), nullable=True),
     sa.ForeignKeyConstraint(['field_id'], ['rating_fields.id'], name=op.f('fk_rating_list_field_id_rating_fields')),
-    sa.ForeignKeyConstraint(['student_id'], ['user.id'], name=op.f('fk_rating_list_student_id_user')),
+    sa.ForeignKeyConstraint(['user_id'], ['user.id'], name=op.f('fk_rating_list_user_id_user')),
     sa.PrimaryKeyConstraint('id', name=op.f('pk_rating_list'))
     )
     op.create_table('tests',

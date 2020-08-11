@@ -4,6 +4,9 @@ POST:
 	user:
 		curl -d '{"username": "Roman123", "name": "Roman", "password": "1", "role": "Student"}' -H 'Content-Type: application/json' 127.0.0.1:5000/rest/users
 
+	publication:
+		curl -X POST http://localhost:5000/rest/publications -H "Content-Type: application/json" -d '{"name": "FirstPTocken", "status": "Open", "content": "qfwio43 2tn3f23f23gu4ghv23r0n2fv3rjefro32irfjvrkenbfnkdmoe3", "user_id":"1"}' -v -H "X-Api-Key:eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjoxLCJleHAiOjE1OTYxNDQyMjJ9.sm-P6geh7wotWtKTfrmXJka-3MjkrnAnHwMuprjWnIg"
+
 DELETE:
 	curl -X DELETE http://localhost:5000/rest/publications/1
 

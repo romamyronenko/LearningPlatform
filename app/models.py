@@ -6,7 +6,7 @@ from app import db
 class Role(db.Model):
     name = db.Column(db.VARCHAR(30), primary_key=True)
 
-    def __init__(self, name):
+    def __init__(self, name, **kwargs):
         self.name = name
 
     def __repr__(self):
@@ -33,17 +33,20 @@ class User(db.Model):
 class PublicationStatus(db.Model):
     name = db.Column(db.VARCHAR(30), primary_key=True)
 
+    def __init__(self, name):
+        self.name = name
+
 
 class Publication(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    teacher_id = db.Column(db.Integer, db.ForeignKey(User.id))
+    user_id = db.Column(db.Integer, db.ForeignKey(User.id))
     name = db.Column(db.Text)
     status = db.Column(db.VARCHAR(30), db.ForeignKey(PublicationStatus.name))
     content = db.Column(db.Text)
     date = db.Column(db.Date)
 
-    def __init__(self, teacher_id, name, status, content):
-        self.teacher_id = teacher_id
+    def __init__(self, user_id, name, status, content):
+        self.user_id = user_id
         self.name = name
         self.status = status
         self.content = content
@@ -53,34 +56,34 @@ class Publication(db.Model):
 class Group(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     name = db.Column(db.VARCHAR(30))
-    teacher_id = db.Column(db.Integer, db.ForeignKey(User.id))
+    user_id = db.Column(db.Integer, db.ForeignKey(User.id))
 
-    def __init__(self, name, teacher_id):
+    def __init__(self, name, user_id):
         self.name = name
-        self.teacher_id = teacher_id
+        self.user_id = user_id
 
     def __repr__(self):
-        return f'Group({self.id}, {self.name}, {self.teacher_id})'
+        return f'Group({self.id}, {self.name}, {self.user_id})'
 
 
 class GroupStudent(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    student_id = db.Column(db.Integer, db.ForeignKey(User.id))
+    user_id = db.Column(db.Integer, db.ForeignKey(User.id))
     group_id = db.Column(db.Integer, db.ForeignKey(Group.id))
 
-    def __init__(self, student_id, group_id):
-        self.student_id = student_id
+    def __init__(self, user_id, group_id):
+        self.user_id = user_id
         self.group_id = group_id
 
 
 class PublicationPermissionStudent(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     publication_id = db.Column(db.Integer, db.ForeignKey(Publication.id))
-    student_id = db.Column(db.Integer, db.ForeignKey(User.id))
+    user_id = db.Column(db.Integer, db.ForeignKey(User.id))
 
-    def __init__(self, publication_id, student_id):
+    def __init__(self, publication_id, user_id):
         self.publication_id = publication_id
-        self.student_id = student_id
+        self.user_id = user_id
 
 
 class PublicationPermissionGroup(db.Model):
@@ -95,11 +98,11 @@ class PublicationPermissionGroup(db.Model):
 
 class Task(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    teacher_id = db.Column(db.Integer, db.ForeignKey(User.id))
+    user_id = db.Column(db.Integer, db.ForeignKey(User.id))
     max_mark = db.Column(db.Integer)
 
-    def __init__(self, teacher_id):
-        self.teacher_id = teacher_id
+    def __init__(self, user_id):
+        self.user_id = user_id
 
 
 class RatingFields(db.Model):
@@ -118,12 +121,12 @@ class RatingFields(db.Model):
 
 class RatingList(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    student_id = db.Column(db.Integer, db.ForeignKey(User.id))
+    user_id = db.Column(db.Integer, db.ForeignKey(User.id))
     field_id = db.Column(db.Integer, db.ForeignKey(RatingFields.id))
     mark = db.Column(db.Integer)
 
-    def __init__(self, student_id, field_id, mark):
-        self.student_id = student_id
+    def __init__(self, user_id, field_id, mark):
+        self.user_id = user_id
         self.field_id = field_id
         self.mark = int(mark)
 
@@ -167,9 +170,9 @@ class Answers(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     question_id = db.Column(db.Integer, db.ForeignKey(Question.id))
     answer = db.Column(db.Text)
-    student_id = db.Column(db.Integer, db.ForeignKey(User.id))
+    user_id = db.Column(db.Integer, db.ForeignKey(User.id))
 
-    def __init__(self, question_id, answer, student_id):
+    def __init__(self, question_id, answer, user_id):
         self.question_id = question_id
         self.answer = answer
-        self.student_id = student_id
+        self.user_id = user_id

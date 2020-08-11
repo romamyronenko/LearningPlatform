@@ -1,9 +1,12 @@
 language: python
 python:
-  - "3.6"
+  - "3.8"
 # command to install dependencies
 install:
   - pip install -r requirements.txt
 # command to run tests
 script:
   - pytest
+env:
+  global:
+    - SECRET_KEY=()JR@#FIU#@f982jf3
