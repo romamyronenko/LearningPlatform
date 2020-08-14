@@ -11,6 +11,7 @@ from . import schemas
 class CustomResource(Resource):
     check_role = None
     check_user_id = False
+    check_owner_id = False
 
     def get(self, **kwargs):
         schema = self.schema()
@@ -40,7 +41,8 @@ class CustomResource(Resource):
         if self.check_role is not None and self.check_role != g.user.role:
             return 'user is not a ' + str(g.user.role), 405
         if self.check_user_id and str(kwargs['id']) != str(g.user.id):
-            print('dds', kwargs['id'], g.user.id)
+            return 'permissions denied', 406
+        if self.check_owner_id and str(self.model.query.filter_by(id=kwargs['id']).first().user_id) != str(g.user.id):
             return 'permissions denied', 406
         value = self.model.query.filter_by(**kwargs).first()
         if not value:
@@ -133,14 +135,36 @@ class GroupListApi(CustomListResource):
 
 
 class PublicationApi(CustomResource):
+    check_owner_id = True
     model = models.Publication
     schema = schemas.PublicationSchema
+
+    @auth.token_required
+    def get(self, id):
+        creator_id = self.model.query.filter_by(id=id).first().user_id
+        status = self.model.query.filter_by(id=id).first().status
+        permissions = models.PublicationPermissionStudent.query.filter_by(publication_id=id, user_id=g.user.id).first()
+        if creator_id == g.user.id or status == 'Open' or permissions is not None:
+            return super(PublicationApi, self).get(id=id)
+        else:
+            return 'not have permissions to view', 406
 
 
 class PublicationListApi(CustomListResource):
     add_user_id = True
     model = models.Publication
     schema = schemas.PublicationSchema
+
+    @auth.token_required
+    def get(self):
+        if g.user.role == 'Admin':
+            return super(PublicationListApi, self).get()
+        schema = self.schema(many=True)
+        ids = [i.publication_id for i in models.PublicationPermissionStudent.query.filter_by(user_id=g.user.id).all()]
+        values = self.model.query.filter((self.model.status == 'Open') |
+                                         (self.model.user_id == g.user.id) |
+                                         (self.model.id.in_(ids)))
+        return schema.dump(values)
 
 
 class GroupStudentApi(CustomResource):

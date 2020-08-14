@@ -1,5 +1,5 @@
 from werkzeug.security import generate_password_hash
-import time
+import datetime
 from app import db
 
 
@@ -50,7 +50,7 @@ class Publication(db.Model):
         self.name = name
         self.status = status
         self.content = content
-        self.date = time.strftime('%Y-%m-%d')
+        self.date = datetime.date.today()
 
 
 class Group(db.Model):

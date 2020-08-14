@@ -1,6 +1,6 @@
 from marshmallow_sqlalchemy import SQLAlchemyAutoSchema
 from marshmallow.exceptions import ValidationError
-from flask import request
+from flask import request, g
 from . import models
 from marshmallow import validates
 
@@ -44,6 +44,8 @@ class PublicationSchema(SQLAlchemyAutoSchema):
 
 class GroupSchema(SQLAlchemyAutoSchema):
     class Meta:
+        load_instance = True
+        include_fk = True
         model = models.Group
 
     @validates('user_id')
@@ -59,7 +61,14 @@ class GroupStudentSchema(SQLAlchemyAutoSchema):
 
 class PublicationPermissionStudentSchema(SQLAlchemyAutoSchema):
     class Meta:
+        load_instance = True
+        include_fk = True
         model = models.PublicationPermissionStudent
+
+    @validates('publication_id')
+    def is_teacher(self, value):
+        if models.Publication.query.filter_by(id=value).first().id != g.user.id:
+            raise ValidationError('permissions denied')
 
 
 class PublicationPermissionGroupSchema(SQLAlchemyAutoSchema):
