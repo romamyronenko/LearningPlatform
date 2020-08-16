@@ -12,6 +12,8 @@ class CustomResource(Resource):
     check_role = None
     check_user_id = False
     check_owner_id = False
+    check_group_owner_id = False
+    check_publication_owner_id = False
 
     def get(self, **kwargs):
         schema = self.schema()
@@ -44,6 +46,15 @@ class CustomResource(Resource):
             return 'permissions denied', 406
         if self.check_owner_id and str(self.model.query.filter_by(id=kwargs['id']).first().user_id) != str(g.user.id):
             return 'permissions denied', 406
+        if self.check_group_owner_id:
+            group_id = self.model.query.filter_by(id=kwargs['id']).first().group_id
+            if models.Group.query.filter_by(id=group_id).first().user_id != g.user.id:
+                return 'permissions denied', 406
+        if self.check_publication_owner_id:
+            publication_id = self.model.query.filter_by(id=kwargs['id']).first().publication_id
+            if models.Publication.query.filter_by(id=publication_id).first().user_id != g.user.id:
+                print('ddd', models.Publication.query.filter_by(id=publication_id).first().user_id, g.user.id)
+                return 'permissions denied', 406
         value = self.model.query.filter_by(**kwargs).first()
         if not value:
             return 'value is not exists', 403
@@ -55,6 +66,7 @@ class CustomResource(Resource):
 class CustomListResource(Resource):
     add_user_id = False
     check_role = None
+    check_group_owner_id = False
     
     @auth.token_required
     def post(self):
@@ -63,6 +75,12 @@ class CustomListResource(Resource):
 
         if self.check_role is not None and self.check_role != g.user.role:
             return 'user is not a ' + str(g.user.role), 405
+
+        if self.check_group_owner_id:
+            if models.Group.query.filter_by(id=request.json['group_id']).first().user_id != g.user.id:
+                print('ddd', models.Group.query.filter_by(id=request.json['group_id']).first().user_id, g.user.id)
+                return 'permissions denied', 406
+
         schema = self.schema()
         try:
             value = schema.load(request.json, session=db.session)
@@ -168,6 +186,7 @@ class PublicationListApi(CustomListResource):
 
 
 class GroupStudentApi(CustomResource):
+    check_group_owner_id = True
     model = models.GroupStudent
     schema = schemas.GroupStudentSchema
 
@@ -178,6 +197,7 @@ class GroupStudentListApi(CustomListResource):
 
 
 class PublicationPermissionStudentApi(CustomResource):
+    check_publication_owner_id = True
     model = models.PublicationPermissionStudent
     schema = schemas.PublicationPermissionStudentSchema
 
@@ -188,6 +208,7 @@ class PublicationPermissionStudentListApi(CustomListResource):
 
 
 class PublicationPermissionGroupApi(CustomResource):
+    check_publication_owner_id = True
     model = models.PublicationPermissionGroup
     schema = schemas.PublicationPermissionGroupSchema
 
@@ -203,16 +224,19 @@ class TaskApi(CustomResource):
 
 
 class TaskListApi(CustomListResource):
+    add_user_id = True
     model = models.Task
     schema = schemas.TaskSchema
 
 
 class RatingFieldsApi(CustomResource):
+    check_group_owner_id = True
     model = models.RatingFields
     schema = schemas.RatingFieldsSchema
 
 
 class RatingFieldsListApi(CustomListResource):
+    check_group_owner_id = True
     model = models.RatingFields
     schema = schemas.RatingFieldsSchema
 

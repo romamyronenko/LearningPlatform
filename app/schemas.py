@@ -56,7 +56,19 @@ class GroupSchema(SQLAlchemyAutoSchema):
 
 class GroupStudentSchema(SQLAlchemyAutoSchema):
     class Meta:
+        load_instance = True
+        include_fk = True
         model = models.GroupStudent
+
+    @validates('user_id')
+    def is_student(self, value):
+        if models.User.query.filter_by(id=value).first().role != 'Student':
+            raise ValidationError('user is not a student')
+
+    @validates('group_id')
+    def is_owner(self, value):
+        if models.Group.query.filter_by(id=value).first().user_id != g.user.id:
+            raise ValidationError('permissions denied')
 
 
 class PublicationPermissionStudentSchema(SQLAlchemyAutoSchema):
@@ -73,16 +85,32 @@ class PublicationPermissionStudentSchema(SQLAlchemyAutoSchema):
 
 class PublicationPermissionGroupSchema(SQLAlchemyAutoSchema):
     class Meta:
+        load_instance = True
+        include_fk = True
         model = models.PublicationPermissionGroup
+
+    @validates('publication_id')
+    def is_teacher(self, value):
+        if models.Publication.query.filter_by(id=value).first().id != g.user.id:
+            raise ValidationError('permissions denied')
 
 
 class TaskSchema(SQLAlchemyAutoSchema):
     class Meta:
+        load_instance = True
+        include_fk = True
         model = models.Task
+
+    @validates('user_id')
+    def is_student(self, value):
+        if models.User.query.filter_by(id=value).first().role != 'Teacher':
+            raise ValidationError('user is not a teacher')
 
 
 class RatingFieldsSchema(SQLAlchemyAutoSchema):
     class Meta:
+        load_instance = True
+        include_fk = True
         model = models.RatingFields
 
 

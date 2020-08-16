@@ -16,6 +16,10 @@ def get_publication_id(name):
     return models.Publication.query.filter_by(name=name).first().id
 
 
+def get_group_id(name):
+    return models.Group.query.filter_by(name=name).first().id
+
+
 def get_user_password(username):
     for i in data.users:
         if i['username'] == username:
@@ -235,7 +239,7 @@ def test_remove_publication_permission_student(get_db, add_users, add_publicatio
     db.session.add(models.PublicationPermissionStudent(**publication_permission_student))
     db.session.commit()
 
-    r1 = app.test_client().delete('/rest/publications_permissions_students/1', headers={'X-Api-Key': get_token(data.users[4])})
+    r1 = app.test_client().delete('/rest/publications_permissions_students/1', headers={'X-Api-Key': get_token(data.users[1])})
     assert r1.status_code == 204
     assert not app.test_client().get('/rest/publications_permissions_students').json
 
@@ -262,36 +266,131 @@ def test_remove_group(get_db, add_users):
     assert not app.test_client().get('/rest/groups').json
 
 
-def test_add_group_student():
-    pass
+def test_add_group_student(get_db, add_users):
+    group = copy.copy(data.groups[0])
+    group['user_id'] = get_user_id(group['username'])
+    del group['username']
+    db.session.add(models.Group(**group))
+    db.session.commit()
+
+    gs = copy.copy(data.groups_students[0])
+    gs['group_id'] = get_group_id(gs['group_name'])
+    gs['user_id'] = get_user_id(gs['username'])
+    del gs['group_name']
+    del gs['username']
+    r1 = app.test_client().post('/rest/group_student', json=gs, headers={'X-Api-Key': get_token(data.users[1])})
+    assert r1.status_code == 201
 
 
-def test_remove_group_student():
-    pass
+def test_remove_group_student(get_db, add_users):
+    group = copy.copy(data.groups[0])
+    group['user_id'] = get_user_id(group['username'])
+    del group['username']
+    db.session.add(models.Group(**group))
+    db.session.commit()
+
+    gs = copy.copy(data.groups_students[0])
+    gs['group_id'] = get_group_id(gs['group_name'])
+    gs['user_id'] = get_user_id(gs['username'])
+    del gs['group_name']
+    del gs['username']
+    db.session.add(models.GroupStudent(**gs))
+    db.session.commit()
+
+    r = app.test_client().delete('/rest/group_student/1', headers={'X-Api-Key': get_token(data.users[1])})
+    assert r.status_code == 204
+    assert not app.test_client().get('/rest/group_student').json
 
 
-def test_add_publication_permission_group():
-    pass
+def test_add_publication_permission_group(get_db, add_users, add_publications):
+    group = copy.copy(data.groups[0])
+    group['user_id'] = get_user_id(group['username'])
+    del group['username']
+    db.session.add(models.Group(**group))
+    db.session.commit()
+
+    ppg = copy.copy(data.publications_permissions_group[0])
+    ppg['group_id'] = get_group_id(ppg['group_name'])
+    ppg['publication_id'] = get_publication_id(ppg['publication_name'])
+    del ppg['group_name']
+    del ppg['publication_name']
+    r1 = app.test_client().post('/rest/publications_permissions_groups',
+                                json=ppg,
+                                headers={'X-Api-Key': get_token(data.users[1])})
+
+    assert r1.status_code == 201
 
 
-def test_remove_publication_permission_group():
-    pass
+def test_remove_publication_permission_group(get_db, add_users, add_publications):
+    group = copy.copy(data.groups[0])
+    group['user_id'] = get_user_id(group['username'])
+    del group['username']
+    db.session.add(models.Group(**group))
+    db.session.commit()
+
+    ppg = copy.copy(data.publications_permissions_group[0])
+    ppg['group_id'] = get_group_id(ppg['group_name'])
+    ppg['publication_id'] = get_publication_id(ppg['publication_name'])
+    del ppg['group_name']
+    del ppg['publication_name']
+
+    db.session.add(models.PublicationPermissionGroup(**ppg))
+    db.session.commit()
+    r1 = app.test_client().delete('/rest/publications_permissions_groups/1',
+                                  headers={'X-Api-Key': get_token(data.users[1])})
+    assert r1.status_code == 204
+    assert not app.test_client().get('/rest/publications_permissions_groups').json
 
 
-def test_add_task():
-    pass
+def test_add_task(get_db, add_users):
+    r1 = app.test_client().post('/rest/tasks', json=dict(), headers={'X-Api-Key': get_token(data.users[1])})
+    assert r1.status_code == 201
 
 
-def test_remove_task():
-    pass
+def test_remove_task(get_db, add_users):
+    task = copy.copy(data.tasks[0])
+    task['user_id'] = get_user_id(task['username'])
+    del task['username']
+    db.session.add(models.Task(**task))
+    db.session.commit()
+
+    r1 = app.test_client().delete('/rest/tasks/1', headers={'X-Api-Key': get_token(data.users[1])})
+
+    assert r1.status_code == 204
+    assert not app.test_client().get('/rest/tasks').json
 
 
-def test_add_rating_fields():
-    pass
+def test_add_rating_fields(get_db, add_users):
+    group = copy.copy(data.groups[0])
+    group['user_id'] = get_user_id(group['username'])
+    del group['username']
+    db.session.add(models.Group(**group))
+    db.session.commit()
+
+    rf = copy.copy(data.rating_fields[0])
+    r1 = app.test_client().post('/rest/rating_fields',
+                                json=rf,
+                                headers={'X-Api-Key': get_token(data.users[1])})
+    rf['id'] = 1
+    assert r1.status_code == 201
+    assert r1.json == rf
 
 
-def test_remove_rating_fields():
-    pass
+def test_remove_rating_fields(get_db, add_users):
+    group = copy.copy(data.groups[0])
+    group['user_id'] = get_user_id(group['username'])
+    del group['username']
+    db.session.add(models.Group(**group))
+    db.session.commit()
+
+    rf = copy.copy(data.rating_fields[0])
+    db.session.add(models.RatingFields(**rf))
+    db.session.commit()
+
+    r1 = app.test_client().delete('/rest/rating_fields/1', headers={'X-Api-Key': get_token(data.users[1])})
+
+    assert r1.status_code == 204
+    assert not app.test_client().get('/rest/rating_fields').json
 
 
 def test_add_rating_list():

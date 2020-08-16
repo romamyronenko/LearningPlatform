@@ -76,3 +76,31 @@ groups = [
         'username': 'John_01'
     }
 ]
+
+groups_students = [
+    {
+        'group_name': 'IO-72 Math',
+        'username': 'roma0221'
+    }
+]
+
+publications_permissions_group = [
+    {
+        'group_name': 'IO-72 Math',
+        'publication_name': 'Close Publication'
+    }
+]
+
+tasks = [
+    {'username': 'John_01'}
+]
+
+rating_fields = [
+    {
+        'task_id': 1,
+        'group_id': 1,
+        'field_name': 'FirstTest',
+        'required': True
+    }
+
+]
